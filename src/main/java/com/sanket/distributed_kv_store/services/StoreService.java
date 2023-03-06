@@ -15,11 +15,11 @@ public class StoreService {
         this.storeRepository = storeRepository;
     }
 
-    public StoreEntry createStore(String key, String value, Long ttl) {
+    public void createStore(String key, String value, Long ttl) {
         StoreEntry storeEntry = new StoreEntry();
         storeEntry.setKey(key);
         storeEntry.setValue(value);
         storeEntry.setTtl(ttl);
-        return storeRepository.saveAndFlush(storeEntry);
+        storeRepository.saveAndFlush(storeEntry);
     }
 }
