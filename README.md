@@ -1,11 +1,13 @@
 # Design Distributed KV Store using relational DB
 
 ### Requirements Gathering
-
+1. Design a Key-value store using relational database.
+2. The store should support below operations.
+3. The keys should be auto deleted upon expiration.
+4. The store should handle 1 million concurrent requests.
 ---
 
 ### Non Functions Requirements
-
 
 ---
 
