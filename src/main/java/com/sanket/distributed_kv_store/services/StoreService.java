@@ -1,9 +1,12 @@
 package com.sanket.distributed_kv_store.services;
 
 import com.sanket.distributed_kv_store.models.StoreEntry;
+import com.sanket.distributed_kv_store.models.StoreEntryStatus;
 import com.sanket.distributed_kv_store.repositories.StoreRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Calendar;
@@ -12,7 +15,6 @@ import java.util.Optional;
 
 // TODO: handle exceptions and refactor
 // TODO: CRON job to clear/soft delete the entries
-// TODO: use transaction for put method to maintain data integrity
 // TODO: expose rest endpoints
 
 @Service
@@ -25,26 +27,34 @@ public class StoreService {
         this.storeRepository = storeRepository;
     }
 
-    public void put(String key, String value, int seconds) {
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public StoreEntryStatus put(String key, String value, int seconds) {
+        StoreEntryStatus status;
         Optional<StoreEntry> entry = storeRepository.findByKey(key);
         StoreEntry storeEntry;
         if (entry.isEmpty()) {
+            // create new entry
             storeEntry = new StoreEntry();
             storeEntry.setKey(key);
+            status = StoreEntryStatus.CREATED;
         } else {
+            // update value
             storeEntry = entry.get();
+            status = StoreEntryStatus.MODIFIED;
         }
         storeEntry.setValue(value);
         Date now = Calendar.getInstance().getTime();
         Instant ttl = now.toInstant().plusSeconds(seconds);
         storeEntry.setTtl(ttl.toEpochMilli());
         storeRepository.saveAndFlush(storeEntry);
+        return status;
     }
 
 
-    public void put(String key, String value) {
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public StoreEntryStatus put(String key, String value) {
         // default ttl is 1 day
-        put(key, value, 60 * 60 * 24);
+        return put(key, value, 60 * 60 * 24);
     }
 
     public void delete(String key) {
