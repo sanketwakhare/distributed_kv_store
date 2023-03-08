@@ -1,15 +1,14 @@
 package com.sanket.distributed_kv_store.controllers;
 
 import com.sanket.distributed_kv_store.models.Pair;
+import com.sanket.distributed_kv_store.models.ResponseData;
+import com.sanket.distributed_kv_store.models.ResponseMessage;
 import com.sanket.distributed_kv_store.models.StoreEntryStatus;
 import com.sanket.distributed_kv_store.services.StoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("store")
@@ -23,14 +22,34 @@ public class StoreController {
     }
 
     @PostMapping("put")
-    public ResponseEntity<?> put(@RequestBody(required = true) Pair pair) {
+    public ResponseEntity<?> put(@RequestBody Pair pair) {
         try {
             StoreEntryStatus status = storeService.put(pair.getKey(), pair.getValue());
-            return switch (status) {
-                case CREATED -> new ResponseEntity<>("entry created", HttpStatus.CREATED);
-                case MODIFIED -> new ResponseEntity<>("entry modified", HttpStatus.ACCEPTED);
-                case ERROR -> new ResponseEntity<>("error creating/modifying entry", HttpStatus.INTERNAL_SERVER_ERROR);
-            };
+            ResponseMessage responseMessage = new ResponseMessage();
+            HttpStatus httpStatus = null;
+            switch (status) {
+                case CREATED -> {
+                    responseMessage.setMessage("entry created");
+                    httpStatus = HttpStatus.CREATED;
+                }
+                case MODIFIED -> {
+                    responseMessage.setMessage("entry modified");
+                    httpStatus = HttpStatus.ACCEPTED;
+                }
+            }
+            return new ResponseEntity<>(responseMessage, httpStatus);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("get")
+    public ResponseEntity<?> get(@RequestParam(name = "key") String key) {
+        try {
+            String value = storeService.get(key);
+            ResponseData responseData = new ResponseData();
+            responseData.setData(value);
+            return new ResponseEntity<>(responseData, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }

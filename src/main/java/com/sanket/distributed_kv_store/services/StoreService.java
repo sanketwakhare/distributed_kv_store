@@ -72,7 +72,7 @@ public class StoreService {
     }
 
     public String get(String key) {
-        Optional<StoreEntry> entry = storeRepository.findByKey(key);
+        Optional<StoreEntry> entry = storeRepository.findByKeyNonTransactional(key);
         if (entry.isPresent()) {
             StoreEntry storeEntry = entry.get();
             if (storeEntry.getTtl() == -1) {
