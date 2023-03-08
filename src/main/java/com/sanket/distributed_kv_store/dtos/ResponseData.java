@@ -1,4 +1,4 @@
-package com.sanket.distributed_kv_store.models;
+package com.sanket.distributed_kv_store.dtos;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -1,8 +1,8 @@
 package com.sanket.distributed_kv_store.controllers;
 
-import com.sanket.distributed_kv_store.models.Pair;
-import com.sanket.distributed_kv_store.models.ResponseData;
-import com.sanket.distributed_kv_store.models.ResponseMessage;
+import com.sanket.distributed_kv_store.dtos.*;
+import com.sanket.distributed_kv_store.dtos.Error;
+import com.sanket.distributed_kv_store.exceptions.EntryNotPresentException;
 import com.sanket.distributed_kv_store.models.StoreEntryStatus;
 import com.sanket.distributed_kv_store.services.StoreService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +39,7 @@ public class StoreController {
             }
             return new ResponseEntity<>(responseMessage, httpStatus);
         } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new Error(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -51,7 +51,37 @@ public class StoreController {
             responseData.setData(value);
             return new ResponseEntity<>(responseData, HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new Error(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @DeleteMapping("delete")
+    public ResponseEntity<?> delete(@RequestParam(name = "key") String key) {
+        try {
+            boolean isDeleted = storeService.delete(key);
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage("entry deleted");
+            return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+        } catch (EntryNotPresentException e) {
+            return new ResponseEntity<>(new Error(e.getMessage()), HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new Error(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PutMapping("ttl")
+    public ResponseEntity<?> ttl(@RequestBody TtlRequestDto requestDto) {
+        try {
+            String key = requestDto.getKey();
+            int seconds = requestDto.getSeconds();
+            storeService.ttl(key, seconds);
+            ResponseMessage responseMessage = new ResponseMessage();
+            responseMessage.setMessage("ttl updated");
+            return new ResponseEntity<>(responseMessage, HttpStatus.ACCEPTED);
+        } catch (EntryNotPresentException e) {
+            return new ResponseEntity<>(new Error(e.getMessage()), HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new Error(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

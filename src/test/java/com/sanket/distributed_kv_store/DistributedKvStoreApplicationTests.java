@@ -1,5 +1,6 @@
 package com.sanket.distributed_kv_store;
 
+import com.sanket.distributed_kv_store.exceptions.EntryNotPresentException;
 import com.sanket.distributed_kv_store.services.StoreService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +17,7 @@ class DistributedKvStoreApplicationTests {
 	}
 
 	@Test
-	void contextLoads() {
+	void contextLoads() throws EntryNotPresentException {
 		storeService.put("test-123", "test_value-123");
 		storeService.put("test-124", "test_value-124");
 		storeService.put("test-125", "test_value-125");
