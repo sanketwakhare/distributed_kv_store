@@ -19,6 +19,6 @@ public interface StoreRepository extends JpaRepository<StoreEntry, UUID> {
     Optional<StoreEntry> findByKey(@Param("key") String key);
 
     @Query("select e from StoreEntry e where e.key=:key")
-    @Lock(LockModeType.OPTIMISTIC)
+    @Lock(LockModeType.PESSIMISTIC_READ)
     Optional<StoreEntry> findByKeyNonTransactional(@Param("key") String key);
 }

@@ -1,5 +1,6 @@
 package com.sanket.distributed_kv_store.services;
 
+import com.sanket.distributed_kv_store.common.AppConstants;
 import com.sanket.distributed_kv_store.exceptions.EntryNotPresentException;
 import com.sanket.distributed_kv_store.models.StoreEntry;
 import com.sanket.distributed_kv_store.models.StoreEntryStatus;
@@ -53,7 +54,7 @@ public class StoreService {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public StoreEntryStatus put(String key, String value) {
         // default ttl is 1 day
-        return put(key, value, 60 * 60 * 24);
+        return put(key, value, AppConstants.DEFAULT_TTL);
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
@@ -73,6 +74,7 @@ public class StoreService {
         throw new EntryNotPresentException(key);
     }
 
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public String get(String key) {
         Optional<StoreEntry> entry = storeRepository.findByKeyNonTransactional(key);
         if (entry.isPresent()) {
